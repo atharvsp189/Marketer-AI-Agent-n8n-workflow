@@ -14,6 +14,8 @@ cloudinary.config({
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 
+var reqFulfilled = 0;
+
 app.post('/capture', async (req, res) => {
     console.log(`[${new Date().toISOString()}] Received request`);
     const { html } = req.body;
@@ -44,7 +46,8 @@ app.post('/capture', async (req, res) => {
           }
 
           #capture-box {
-              width: 360px;
+              width: 400px;
+              height: 400px;
               text-align: center;
               padding: 40px 20px;
               background-color: #fffaf6;
@@ -106,34 +109,63 @@ app.post('/capture', async (req, res) => {
         </style>
       </head>
       <body>
+        <div id="capture-box">
         ${html}
+        </div>
       </body>
     </html>
   `, { waitUntil: 'networkidle0' });
 
     // Wait for the selector to be available
+    console.log("HTML : ", html)
     await page.waitForSelector(selector);
 
     // Select the element
     const element = await page.$(selector);
 
-    const filePath = path.join(__dirname, 'screenshot.png');
+    const fileName = `screenshot_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.png`;
+    const filePath = path.join(__dirname, fileName);
     await element.screenshot({ path: filePath });
-
+    
     await browser.close();
+    
+    // cloudinary.uploader.upload(filePath, { folder: "puppeteer_uploads" }, (error, result) => {
+    //     if (error) {
+    //         console.error("❌ Upload failed:", error);
+    //         return res.status(500).json({ error: "Upload to Cloudinary failed" });
+    //     } else {
+    //         console.log("✅ Upload successful!");
+    //         console.log("📎 Image URL:", result.secure_url);
+    //         const fileUrl = result.secure_url;
+    //         res.json({ url: fileUrl });
+    //     }
+    // });
+    // reqFulfilled += 1;
+    // console.log("Request Done: ", reqFulfilled)
+    // fs.unlink(filePath, (err) => {
+    // if (err) console.error('❌ Failed to delete local file:', err);
+    // else console.log(`🧹 Deleted temp file: ${filePath}`);
+    
+    try {
+        // ✅ Upload first
+        const result = await cloudinary.uploader.upload(filePath, { folder: "puppeteer_uploads" });
 
-    cloudinary.uploader.upload(filePath, { folder: "puppeteer_uploads" }, (error, result) => {
-        if (error) {
-            console.error("❌ Upload failed:", error);
-            return res.status(500).json({ error: "Upload to Cloudinary failed" });
-        } else {
-            console.log("✅ Upload successful!");
-            console.log("📎 Image URL:", result.secure_url);
-            const fileUrl = result.secure_url;
-            res.json({ url: fileUrl });
-        }
-    });
+        console.log("✅ Upload successful!");
+        console.log("📎 Image URL:", result.secure_url);
 
+        // ✅ Then delete local file
+        fs.unlink(filePath, (err) => {
+            if (err) console.error('❌ Failed to delete local file:', err);
+            else console.log(`🧹 Deleted temp file: ${filePath}`);
+        });
+
+        // ✅ Finally send response
+        res.json({ url: result.secure_url });
+
+    } catch (error) {
+        console.error("❌ Upload failed:", error);
+        res.status(500).json({ error: "Upload to Cloudinary failed" });
+    }
 });
 
 app.listen(3000, '0.0.0.0', () => {

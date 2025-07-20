@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // ✅ Replace this with your actual Cloudinary image URL
-const imageUrl = 'https://res.cloudinary.com/dbuaftps7/image/upload/v1752993014/puppeteer_uploads/imv3kskrmhwyqjrvrvgw.png';
+const imageUrl = 'https://res.cloudinary.com/dbuaftps7/image/upload/v1753004279/puppeteer_uploads/rlvf4nelo1q9xamwan3u.png';
 
 // ✅ Set local file name
 const fileName = 'downloaded-image.png';

@@ -1,0 +1,1073 @@
+{
+  "name": "Jagruk-Thekedar",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        -400
+      ],
+      "id": "350c0358-9d8e-445d-adeb-2a3927596a1c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "50a6308e-d438-42ef-b2f2-63734e225b1e",
+              "name": "Topic Ideas",
+              "value": "[  {     \"title\": \"Navigating the Indian Government Tender Landscape: A Step-by-Step Guide\",     \"description\": \"An in-depth guide breaking down the entire government tender process in India, from pre-qualification and bid submission to evaluation and contract award. This will simplify complex jargon and highlight crucial documents and compliance requirements for PWD, EPC, and infrastructure projects.\"   }]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -272,
+        -32
+      ],
+      "id": "be195573-7df2-4037-b5aa-bed07b930eec",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "Topic Ideas",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -32
+      ],
+      "id": "ee711d7d-1dcd-461a-9327-21cb5d0eadd7",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        272,
+        -304
+      ],
+      "id": "575e53fa-0812-4836-8fcc-99f0b1a84f1e",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "6yetk0f4nZirrhO8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are Planner Agent which draws the plan on how to write a threads for a Indian Government Contractors. For getting the localized content targeted at Indian government contractors (PWD, EPC, infrastructure, etc.). This content should focus on solving common problems, explaining complex tender-related processes, and educating new or growing contractors.  given topics in a simple, and understandable language in a story format. Just Provide plan in Bullet Points and Short Description.\n\nPlease Draft a step by step outline for writing the blog. NO GREETINGS\n\nHere is the Topic Brief about the Topic:\nTitle: {{ $json.title }}\nDescription: {{ $json.description }}",
+        "batching": {
+          "batchSize": 5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        208,
+        -464
+      ],
+      "id": "330f042a-f268-40a2-a391-fb36118f372c",
+      "name": "Planner Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a researcher charged with providing information that can be used when writing the following report. Generate a list of search queries that will gather any relevant information. Only generate 4 queries max.\n\nNO GREETINGS.\n\n{{ $json.text }}",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        528,
+        -464
+      ],
+      "id": "1ae6b6f2-83ec-4abc-8522-24b9d1420c76",
+      "name": "Reseacher"
+    },
+    {
+      "parameters": {
+        "options": {
+          "numberOfItems": 3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserItemList",
+      "typeVersion": 1,
+      "position": [
+        736,
+        -288
+      ],
+      "id": "0d340163-c599-486b-bbda-7357e5282d90",
+      "name": "Item List Output Parser"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-lite",
+        "options": {
+          "maxOutputTokens": 512,
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        544,
+        -304
+      ],
+      "id": "776c0073-0996-420e-8d9d-2c513e9bff25",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "6yetk0f4nZirrhO8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "query": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavily",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        -1056
+      ],
+      "id": "f3f4b515-3460-49bf-9559-4e356f21b195",
+      "name": "Search",
+      "credentials": {
+        "tavilyApi": {
+          "id": "UN0GASMEXsO2pSBx",
+          "name": "Tavily account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an excellent write speciallized in writing on complex topics in simpler and engaging way. For an Instagram Post of a that contains series of an Images of Explaining it. Add Emojis Wherever It is required. Provide it page wise in markdown format(minimum 7 pages) \n\nNO GREETINGS!\n\nHere is my plan:\n{{ $('Planner Agent').item.json.text }}\n\nHere is the required research:\n{{ $json.data }}",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1648,
+        -496
+      ],
+      "id": "c1757eaa-23f2-4825-9eeb-021df6574833",
+      "name": "Writer"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-pro",
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        -304
+      ],
+      "id": "9c889fef-91a1-4887-b119-69c5a2bf318c",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "6yetk0f4nZirrhO8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "include": "specifiedFields",
+        "fieldsToInclude": "content",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        -1056
+      ],
+      "id": "012152c4-e03e-458e-bc9b-d1895f9ae7d6",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        864,
+        -1056
+      ],
+      "id": "f82ffc59-a37c-41b5-9340-53a8e4217c02",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "results",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        -1056
+      ],
+      "id": "a8fc27a7-3911-4f89-afc9-e54de89af3e2",
+      "name": "Split Out2"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n\t\"page_no\": \"\",\n\t\"content\": \"\"\n  }\n]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1840,
+        -304
+      ],
+      "id": "262ff3ef-8267-4631-bf52-411be8034ccb",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.content }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        2368,
+        -1136
+      ],
+      "id": "dd83ca57-644a-4691-a0da-4b5bd8067c76",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        -1136
+      ],
+      "id": "bccfd1d1-6cdf-4b97-8dff-1d93210e7b5a",
+      "name": "Split Out3"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2496,
+        -1136
+      ],
+      "id": "0684789b-ceed-4117-899b-5f1cd49b2295",
+      "name": "Split Out4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3000/capture/",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "html",
+              "value": "={{ $json.data }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2656,
+        -1136
+      ],
+      "id": "86b67fdb-1186-4d78-afb2-eef911ae8c03",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2784,
+        -1136
+      ],
+      "id": "e863e62a-1343-4bd5-a2a9-df9c60c0adba",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "atharvsp189@gmail.com",
+        "subject": "=Approval for AI Agent Content -   {{ $('Create folder').item.json.name }}",
+        "message": "=<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>AI Agent Content Review</title>\n    <style>\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            line-height: 1.6;\n            margin: 0;\n            padding: 0;\n            background-color: #f5f5f5;\n        }\n        .email-container {\n            max-width: 600px;\n            margin: 5px auto;\n            background-color: #ffffff;\n            border-radius: 8px;\n            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);\n            overflow: hidden;\n        }\n        .header {\n            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n            color: white;\n            padding: 30px 20px;\n            text-align: center;\n        }\n        .header h1 {\n            margin: 0;\n            font-size: 24px;\n            font-weight: 600;\n        }\n        .header p {\n            margin: 10px 0 0 0;\n            opacity: 0.9;\n            font-size: 16px;\n        }\n        .content {\n            padding: 30px 20px;\n        }\n        .greeting {\n            font-size: 16px;\n            color: #333;\n            margin-bottom: 20px;\n        }\n        .main-message {\n            background-color: #f8f9fa;\n            border-left: 4px solid #667eea;\n            padding: 20px;\n            margin: 20px 0;\n            border-radius: 0 4px 4px 0;\n        }\n        .main-message h2 {\n            margin: 0 0 10px 0;\n            color: #333;\n            font-size: 18px;\n        }\n        .main-message p {\n            margin: 0;\n            color: #666;\n        }\n        .link-section {\n            margin: 30px 0;\n            text-align: center;\n        }\n        .link-section h3 {\n            color: #333;\n            margin-bottom: 15px;\n            font-size: 16px;\n        }\n        .link-button {\n            display: inline-block;\n            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n            color: white;\n            padding: 12px 30px;\n            text-decoration: none;\n            border-radius: 25px;\n            font-weight: 600;\n            transition: transform 0.2s ease;\n        }\n        .link-button:hover {\n            transform: translateY(-2px);\n            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);\n        }\n        .footer {\n            background-color: #f8f9fa;\n            padding: 20px;\n            text-align: center;\n            border-top: 1px solid #e9ecef;\n        }\n        .footer p {\n            margin: 0;\n            color: #666;\n            font-size: 14px;\n        }\n        .ai-badge {\n            display: inline-flex;\n            align-items: center;\n            background-color: #e3f2fd;\n            color: #1976d2;\n            padding: 8px 12px;\n            border-radius: 20px;\n            font-size: 12px;\n            font-weight: 600;\n            margin-top: 10px;\n        }\n        .ai-badge::before {\n            content: \"🤖\";\n            margin-right: 5px;\n        }\n        \n        /* Responsive Design */\n        @media (max-width: 600px) {\n            .email-container {\n                margin: 10px;\n                border-radius: 0;\n            }\n            .header, .content {\n                padding: 20px 15px;\n            }\n            .header h1 {\n                font-size: 20px;\n            }\n            .main-message {\n                padding: 15px;\n            }\n        }\n    </style>\n</head>\n<body>\n    <div class=\"email-container\">\n        <div class=\"header\">\n            <h1>Content Review Request</h1>\n            <p>AI-Generated Content Ready for Review</p>\n        </div>\n        \n        <div class=\"content\">\n            <div class=\"greeting\">\n                Hello,\n            </div>\n            \n            <div class=\"main-message\">\n                <h2>📋 Review Required</h2>\n                <p>Our AI Agent has successfully generated new content that requires your review and approval. Please take a moment to examine the materials and provide your feedback.</p>\n                <div class=\"ai-badge\">Generated by AI Agent</div>\n            </div>\n            \n            <div class=\"link-section\">\n                <h3>📁 Access Supporting Images</h3>\n                <a href=\"https://drive.google.com/drive/folders/{{ $('Create folder').item.json.id }}\" class=\"link-button\">\n                    View Images Folder\n                </a>\n            </div>\n            \n            <p style=\"color: #666; font-size: 14px; margin-top: 30px;\">\n                <strong>Next Steps:</strong><br>\n                • Review the generated content<br>\n                • Check the supporting images in the linked folder<br>\n                • Provide feedback or approval as needed\n            </p>\n        </div>\n        \n        <div class=\"footer\">\n            <p>This email was sent from an automated AI workflow system.</p>\n            <p style=\"margin-top: 5px; font-size: 12px; opacity: 0.7;\">\n                Generated on {{ new Date().toLocaleDateString() }}\n            </p>\n        </div>\n    </div>\n</body>\n</html>",
+        "responseType": "customForm",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Suggestions",
+              "placeholder": "Please add some feedback"
+            },
+            {
+              "fieldLabel": "Approved?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3792,
+        -688
+      ],
+      "id": "11b4e317-a385-4993-8095-84fbb9a88f3b",
+      "name": "Send message and wait for response",
+      "webhookId": "e4089199-946b-4ee8-bf6a-771cc7b333d0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "p5nP6ex7eIH85Mhi",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "name"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3168,
+        -1136
+      ],
+      "id": "8d860619-04a0-43d2-b36c-e7aff342753c",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c14ec08f-371e-4e01-9918-d79e11c125d6",
+              "leftValue": "={{ $json.data['Approved?'] }}",
+              "rightValue": "Yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3952,
+        -688
+      ],
+      "id": "2f86e020-d054-476f-87f4-8e2d9358015f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "atharvsp189@gmail.com",
+        "subject": "Post Published",
+        "emailType": "text",
+        "message": "=Post Published:  {{ $('Edit Fields').item.json['Topic Ideas'][0].title }}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        4480,
+        -1296
+      ],
+      "id": "87ce9af7-bac2-44ce-916f-6e7baf546de2",
+      "name": "Send a message1",
+      "webhookId": "a4cb4930-ef7e-43c7-9487-eed8ce68a331",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "p5nP6ex7eIH85Mhi",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxOutputTokens": 2048
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        4512,
+        -480
+      ],
+      "id": "0e405c21-5f49-41c3-b1f7-7beca1d5799d",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "6yetk0f4nZirrhO8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an editor of Instagram page which provides engaging and easy to learn content for a Indian Governemnt Contractors. Please Review this Post add some action items for modifying this post. Provide actionable items in Bullet Points.\nNO GREETINGS\n\nHere are Suggestions:\n{{ $json.data.Suggestions }}\n\nHere is the Post:\n{{ $('Writer').item.json.output }}\n{{ $('Create folder').item.json.name }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        4512,
+        -656
+      ],
+      "id": "ea1cde9e-cf1c-4cf0-9987-f0a8dd0f93d0",
+      "name": "Reflection/Critique"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an excellent write speciallized in writing on complex topics in simpler and engaging way. For an Instagram Post of a that contains series of an Images of Explaining it. Add Emojis Wherever It is required. Provide it page wise in markdown format(minimum 7 pages) \n\nPlease Rewrite the give Instagram Post for making an engaging content for the Indian Government Contractors\n\nNO GREETINGS!!\n\nHere are action items:\n{{ $('Reflection/Critique').item.json.text }}\nHere is the Post:\n{{ $('Writer').item.json.output }}",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        5808,
+        -64
+      ],
+      "id": "5389c6e2-00ba-4097-855c-e49f08049c98",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        5776,
+        -272
+      ],
+      "id": "384eb6bb-bd21-43d2-9640-824fd457ee37",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "6yetk0f4nZirrhO8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n\t\"page_no\": \"\",\n\t\"content\": \"\"\n  }\n]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        5968,
+        -288
+      ],
+      "id": "f175c624-1916-4034-a056-e68283be307d",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        5312,
+        -928
+      ],
+      "id": "d593658e-526c-4e1e-9a7d-aa114cd7a5e6",
+      "name": "Delete a file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "tTkxBo8FU4oJxmtC",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "=Page_{{ $('Markdown').item.json.page_no }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Create folder').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3040,
+        -1136
+      ],
+      "id": "0af906db-4fa1-4796-b5b6-b2907b74b3f6",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "tTkxBo8FU4oJxmtC",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "id",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        5168,
+        -944
+      ],
+      "id": "96278a28-8dc2-4b9b-8158-f30be58d134d",
+      "name": "Split Out5"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "=",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "={{ $('Create folder').item.json.id }}",
+            "mode": "id"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        4992,
+        -944
+      ],
+      "id": "a6f34b19-ed64-483d-b48a-89b985c00c9f",
+      "name": "Search files and folders",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "tTkxBo8FU4oJxmtC",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('Edit Fields').item.json['Topic Ideas'][0].title }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "17g5rSMHkGOZSB3vxiz0ruI1-KAURejIU",
+          "mode": "list",
+          "cachedResultName": "n8n",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/17g5rSMHkGOZSB3vxiz0ruI1-KAURejIU"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        0,
+        -32
+      ],
+      "id": "a3c99105-2458-4194-93a5-bb6200480a13",
+      "name": "Create folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "tTkxBo8FU4oJxmtC",
+          "name": "Google Drive account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Create folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Planner Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Planner Agent": {
+      "main": [
+        [
+          {
+            "node": "Reseacher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item List Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Reseacher",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Reseacher",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reseacher": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search": {
+      "main": [
+        [
+          {
+            "node": "Split Out2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Writer": {
+      "main": [
+        [
+          {
+            "node": "Split Out3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Writer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out3": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Split Out4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out4": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reflection/Critique",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Reflection/Critique",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reflection/Critique": {
+      "main": [
+        [
+          {
+            "node": "Search files and folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Split Out3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out5": {
+      "main": [
+        [
+          {
+            "node": "Delete a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders": {
+      "main": [
+        [
+          {
+            "node": "Split Out5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete a file": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create folder": {
+      "main": [
+        [
+          {
+            "node": "Planner Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2176a3c3-0276-46ce-9ab1-590a94bc9628",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b9c7a2342549db8accb029782b6c74f4deec75afd949925959c658b118b57bfa"
+  },
+  "id": "J2JGGVDUwBC1z7Q6",
+  "tags": []
+}
