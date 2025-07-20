@@ -1,4 +1,3 @@
-// test-capture.js
 const axios = require('axios');
 const fs = require('fs');
 
@@ -15,11 +14,10 @@ const fs = require('fs');
 
         console.log("⏳ Sending HTML to /capture...");
         const response = await axios.post('http://localhost:3000/capture', { html }, {
-            responseType: 'arraybuffer' // Important to handle image binary
+
         });
 
-        fs.writeFileSync('test-output.png', response.data);
-        console.log("✅ Image saved as test-output.png");
+        console.log("✅ Image saved at URL: ", response.data.url);
 
     } catch (err) {
         console.error("❌ Error during test:", err.message);

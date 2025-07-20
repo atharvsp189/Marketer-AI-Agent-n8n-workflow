@@ -2,6 +2,14 @@ const express = require('express');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
+const cloudinary = require('cloudinary').v2;
+require('dotenv').config();
+
+cloudinary.config({
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.API_KEY,
+    api_secret: process.env.API_SECRET
+});
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -109,14 +117,23 @@ app.post('/capture', async (req, res) => {
     // Select the element
     const element = await page.$(selector);
 
-    // Save the screenshot of the element
     const filePath = path.join(__dirname, 'screenshot.png');
     await element.screenshot({ path: filePath });
 
     await browser.close();
-    console.log(`[${Date.now() - start}ms] Screenshot saved to ${filePath}`);
 
-    res.sendFile(filePath);
+    cloudinary.uploader.upload(filePath, { folder: "puppeteer_uploads" }, (error, result) => {
+        if (error) {
+            console.error("❌ Upload failed:", error);
+            return res.status(500).json({ error: "Upload to Cloudinary failed" });
+        } else {
+            console.log("✅ Upload successful!");
+            console.log("📎 Image URL:", result.secure_url);
+            const fileUrl = result.secure_url;
+            res.json({ url: fileUrl });
+        }
+    });
+
 });
 
 app.listen(3000, '0.0.0.0', () => {

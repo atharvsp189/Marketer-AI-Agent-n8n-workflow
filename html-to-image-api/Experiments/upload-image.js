@@ -1,15 +1,16 @@
 const cloudinary = require('cloudinary').v2;
 const path = require('path');
+require('dotenv').config();
 
-// 🔁 1. Setup Cloudinary Credentials
 cloudinary.config({
-  cloud_name: 'YOUR_CLOUD_NAME',     // 👈 replace this
-  api_key: 'YOUR_API_KEY',           // 👈 replace this
-  api_secret: 'YOUR_API_SECRET'      // 👈 replace this
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET
 });
 
-// 📤 2. Upload the image
-const filePath = path.join(__dirname, 'screenshot.png');  // or test-output.png
+
+const filePath = path.join(__dirname, 'test-output.png');
+console.log(filePath)
 
 cloudinary.uploader.upload(filePath, { folder: "puppeteer_uploads" }, (error, result) => {
   if (error) {
@@ -19,3 +20,4 @@ cloudinary.uploader.upload(filePath, { folder: "puppeteer_uploads" }, (error, re
     console.log("📎 Image URL:", result.secure_url);
   }
 });
+
