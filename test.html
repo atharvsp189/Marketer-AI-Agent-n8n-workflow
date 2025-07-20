@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dynamic Box Capture</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    #capture-box {
+      width: 500px;
+      margin: auto;
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border: 2px solid #333;
+      font-family: Arial;
+      font-size: 16px;
+    }
+
+    #controls {
+      width: 500px;
+      margin: auto;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="controls">
+    <h3>Enter HTML Content</h3>
+    <textarea id="inputHtml">
+<h3><strong>From Local Hero to National Builder! 🇮🇳</strong></h3>
+<p>Dreaming of building India's next big landmark? 🏗️ Government tenders can feel like a maze of rules and paperwork. 🤯</p>
+<p>But what if you had a map? 🗺️</p>
+<p>Swipe through to demystify the process! 👉</p>
+    </textarea>
+    <button onclick="updateContent()">Update Box</button>
+    <button onclick="capture()">Capture to Image</button>
+  </div>
+
+  <div id="capture-box">
+    <!-- dynamic content will appear here -->
+  </div>
+
+  <script>
+    function updateContent() {
+      const html = document.getElementById("inputHtml").value;
+      document.getElementById("capture-box").innerHTML = html;
+    }
+
+    function capture() {
+      const element = document.getElementById("capture-box");
+      html2canvas(element).then(canvas => {
+        document.body.appendChild(canvas);
+
+        // Optional: Download the image
+        const imageData = canvas.toDataURL("image/png");
+        const link = document.createElement('a');
+        link.download = 'box-image.png';
+        link.href = imageData;
+        link.click();
+      });
+    }
+  </script>
+
+</body>
+</html>
